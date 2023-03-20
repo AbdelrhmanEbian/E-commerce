@@ -7,6 +7,8 @@ import { useSelector,useDispatch } from 'react-redux';
 import Navbar from './components/navbar';
 import Home from './components/Home';
 import { db, st } from "./firebase";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import { getDownloadURL, ref } from "firebase/storage";
 import {
   collection,
@@ -54,7 +56,6 @@ const App = () => {
   }, [])
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "products"), (snapshot) => {
-      setTimeout(async () => {
       try {
         const promises = snapshot.docs.map(async (doc) => {
           return new Promise(async(resolve) => {
@@ -63,28 +64,28 @@ const App = () => {
               resolve({ ...doc.data(), id: doc.id, img: url });
             });
           });
-          
           Promise.all(promises).then((products) => {
             dispatch(setproducts(products));
           });
         } catch (error) {
-
         }
-      }, 1500); 
     });
-
     return () => unsubscribe();
   }, []);
 
   return (
     <>
-      <BrowserRouter basename="/E-commerce">
-        <Navbar user={user} />
+      <BrowserRouter>
+        <Navbar user={user}/>
           <Routes>
-            <Route path='/E-commerce' element={play ?Object.keys(user).length > 0 ? <Home/>:<Login/> :<h2>...loading</h2> } />
+            <Route path='/' element={play ?Object.keys(user).length > 0 ? <Home/>:<Login/> : (
+        <div className="loader-container">
+      	  <div className="spinner"></div>
+        </div>
+      )  } />
             <Route path='/login' element={<Login />}/>
-            <Route path='/admin' element={<Admin/>} />
-            <Route path='/admin/:id' element={<Update />} />
+{ user.email==="abdelrhmanebian@gmail.com" &&<Route path='/admin' element={<Admin/>} />}     
+       <Route path='/admin/:id' element={<Update />} />
             <Route path='/product/:id' element={<Details />} />
             <Route path='/shopping' element={selected.length === 0 ? <Home /> : <Shopping />} />
           </Routes>

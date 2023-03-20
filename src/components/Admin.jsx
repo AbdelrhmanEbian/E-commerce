@@ -1,16 +1,17 @@
 import { async } from "@firebase/util";
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 import { uploadBytesResumable, ref, getDownloadURL } from "firebase/storage";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { db, st } from "../firebase";
-
 import { useDispatch, useSelector } from 'react-redux';
-import { updated ,setproducts} from "../redux/slice";
+import { updated ,setproducts, setbought} from "../redux/slice";
+import { nanoid } from "@reduxjs/toolkit";
 
 function Admin() {
   const [products, setproductss] = useState([]);
   const p= useSelector(state=>state.products)
+  const bought=useSelector(state=>state.bought)
   useEffect(()=>{
     setproductss(p)
   })
@@ -23,31 +24,23 @@ function Admin() {
     const color = e.target[2].value;
     const quan = e.target[3].value;
     const price = e.target[4].value;
-    const file = e.target[5].files[0];
+    const cat=e.target[5].value
+    const file = e.target[6].files[0];
     const refg = collection(db, "products");
     try {
-      const added = await addDoc(refg, {
+      const id=nanoid()
+      const storage = ref(st, "images/" +id);
+      await uploadBytesResumable(storage, file);
+      await setDoc(doc(refg,id), {
         name: name,
         size: size,
         color: color,
         quan: quan,
+        cat:cat,
         price:price
       });
-      const storage = ref(st, "images/" + added.id);
-      await uploadBytesResumable(storage, file);
     } catch (error) {
     }
-    
-    
-    
-    // dispatch(addproduct({
-    //   name: name,
-    //   size: size,
-    //   color: color,
-    //   quan: quan,
-    //   price:price,
-    //   img:file
-    // }))
   };
 
   const deleteitem=async(id)=>{
@@ -60,6 +53,12 @@ function Admin() {
     dispatch(updated(product))
     nav("/admin/"+product.id)
   }
+  const handle=(id)=>{
+    const arr=bought.map(product=>{
+      return product.id === id ?{...product,accept:"accepted"}:product
+    })
+    dispatch(setbought(arr))
+  }
   return (
     <div className="">
       <form action="" onSubmit={handlesubmit} className="form">
@@ -69,6 +68,13 @@ function Admin() {
         <input type="text" placeholder="color" />
         <input type="text" placeholder="quantity" />
         <input type="text" placeholder="price" />
+        <select name="catoegry"  id="cat">
+          <option value="shirts">Shirts</option>
+          <option value="t-shirts">T-shirts</option>
+          <option value="jeans">Jeans</option>
+          <option value="shoes">Shoes</option>
+          <option value="jackets">Jackets</option>
+        </select>
         <input type="file" id="file" hidden/>
         </div>
         <label htmlFor="file">add Photo</label>
@@ -99,6 +105,35 @@ function Admin() {
         })}
         </div>
       </div>
+      {bought.length > 0 && <div className="order">
+      <div className="products">
+      <h2>Orders</h2>
+
+        <div className="content">
+
+        {bought.map((product) => {
+          return (
+            <div className="product" key={product.id}>
+              <div className="img">
+              <img src={product.img} alt="" />
+              </div>
+              <div className="text">
+
+              <p>{product.name}</p>
+              <p>{product.count}</p>
+              <div className="detail">
+              <p>{product.size}</p>
+              <p>{product.color}</p>
+              <button onClick={()=>handle(product.id)}>submit</button>
+              {product.accept&&<p>{product.accept}</p>}
+              </div>
+              </div>
+            </div>
+          );
+        })}
+        </div>
+      </div>
+      </div>}
     </div>
   );
 }

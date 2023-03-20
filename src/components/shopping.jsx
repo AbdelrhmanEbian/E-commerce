@@ -1,9 +1,10 @@
-import { doc, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { removeitem } from '../redux/slice';
+import { removeitem, setbought, setselected } from '../redux/slice';
+import { setvalue } from '../redux/slice';
 
 function Shopping() {
     const {selected}=useSelector(state=>state)
@@ -25,14 +26,22 @@ function Shopping() {
     const buy=()=>{
         selected.map( async(product)=>{
             const document=doc(db,"products",product.id)
-            await updateDoc(document,{
+            const minus=product.quan-product.count
+            if (minus === 0) {
+             await deleteDoc(document)
+            }else{
+
+              await updateDoc(document,{
                 quan:product.quan-product.count
-            })
+              })
+            }
         })
         setTimeout(()=>{
             nav('/')
         })
-        dispatch(setvalue)
+        dispatch(setvalue())
+        dispatch(setbought(selected))
+        dispatch(setselected())
     }
     const remove=(id)=>{
       dispatch(removeitem(id))

@@ -5,14 +5,64 @@ import { db, st } from "../firebase";
 import { getDownloadURL, ref } from "firebase/storage";
 import { useDispatch, useSelector } from "react-redux";
 import { addtocart } from "../redux/slice";
+import Slider from "react-slick";
+import { details as detailsssss } from "../redux/slice";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
+
 
 function Details() {
-  const { id } = useParams();
+  var settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    // autoplay: true,
+    autoplaySpeed: 2000,
+    slidesToShow: 3,
+    cssEase: "linear",
+    slidesToScroll: 1,
+    autoplay: true,
+
+    responsive: [
+      {
+        breakpoint: 900,
+        settings: {
+          slidesToShow: 2,
+          infinite: true,
+          dots: true,
+          autoplay: true,
+
+          autoplaySpeed: 2000,
+          cssEase: "linear",
+          slidesToScroll: 1,
+        }
+      },
+      {
+        breakpoint: 600,
+        settings: {
+          slidesToShow: 1,
+          infinite: true,
+          dots: true,
+          autoplay: true,
+
+          autoplaySpeed: 2000,
+          cssEase: "linear",
+          slidesToScroll: 1,
+        }
+      }]
+  };
+  
   const details  = useSelector((state) => state.details);
+  const products  = useSelector((state) => state.products);
+  const [like,setlike]=useState([])
   const [play,setplay]=useState(false)
+  const also= products.filter(product=>{
+    return product.cat === details.cat && product.id !== details.id
+   })
   const nav=useNavigate()
   useEffect(()=>{
-
+    setlike(also)
     if (Object.keys(details).length === 0) {
       nav('/')
     }else{
@@ -20,12 +70,19 @@ function Details() {
     }
   },[details])
   const dispatch = useDispatch();
-  const [product, setproduct] = useState([]);
    const addcart = (product) => {
     dispatch(addtocart(product));
   };
+  const detailsarr = async (product) => {
+    scroll(0,0)
+    dispatch(detailsssss(product));
+    nav("/product/" + product.id);
+  };
+
   return (
-   <div className="product-details">
+    <div className="details">
+
+   <div className="product-details" id="product">
       {!play ? <h2>...loading</h2>:
       <>
       <div className="img">
@@ -47,6 +104,38 @@ function Details() {
       </>
       }
     </div>
+    <div className="also">
+{like.length >0 &&      <h2>You may like also</h2>}
+     <Slider {...settings}>
+      {
+     like.map((product) => {
+           return product.quan > 0 ? (
+              <div
+              className="product"
+              key={product.id}
+                onClick={() => detailsarr(product)}
+              >
+                <div className="img">
+
+                <img src={product.img} alt="" />
+                </div>
+                <div className="text">
+
+                <p> {product.name}</p>
+                <p> {product.price}</p>
+                <div className="detail">
+
+                <p>{product.size}</p>
+                <p>{product.color}</p>
+                </div>
+                </div>
+              </div>
+            ) : null;
+          })}
+     </Slider>
+      
+    </div>
+      </div>
   );
 }
 

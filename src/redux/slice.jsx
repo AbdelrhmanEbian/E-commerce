@@ -5,7 +5,8 @@ const initialState = {
   selected:[],inc:false,
   details:{},
   updated:{},
-  products:[]
+  products:[],
+  bought:[]
 }
 
 export const counterSlice = createSlice({
@@ -53,11 +54,16 @@ export const counterSlice = createSlice({
     setvalue:(state)=>{
       state.value=0 
     },
+    setselected:(state)=>{
+      state.selected=[]
+    },setbought:(state,{payload})=>{
+      state.bought=payload
+    }
     
 
   },
 })
 
-export const {addtocart,details,updated,removeitem ,setproducts} = counterSlice.actions
+export const {addtocart,details,updated,removeitem ,setproducts,setvalue,setselected,setbought} = counterSlice.actions
 
 export default counterSlice.reducer
